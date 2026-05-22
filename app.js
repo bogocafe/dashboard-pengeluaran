@@ -176,7 +176,6 @@ async function loadFromSheet() {
 
 async function saveToSheet() {
   const url = getApiUrl();
-  if (!url) return toast("Tempel URL Google Apps Script dulu.");
 
   try {
     toast("Menyimpan data...");
