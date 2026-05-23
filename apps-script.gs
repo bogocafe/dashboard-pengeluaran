@@ -12,8 +12,8 @@
  * 7) Copy Web App URL /exec lalu tempel di dashboard.
  */
 
-const SPREADSHEET_ID = 'https://script.google.com/macros/s/AKfycbyPTSVMIR1-SKlqR6xokaGL5McsbXuju6sbL4qUaBF7rj8_xGMca_6VwSXbs9ksldEuQw/exec';
-const SHEET_NAME = 'sheet-template.csv';
+const SPREADSHEET_ID = 'https://docs.google.com/spreadsheets/d/1kV-qSv6Qv5LTYzc66kojNKGaihq-C0rW5tKRvT6A_sc';
+const SHEET_NAME = 'Sheet1';
 
 const DEFAULT_HEADERS = [
   'Tanggal',
