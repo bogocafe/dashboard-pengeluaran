@@ -12,8 +12,8 @@
  * 7) Copy Web App URL /exec lalu tempel di dashboard.
  */
 
-const SPREADSHEET_ID = 'ISI_ID_SPREADSHEET_KAMU_DI_SINI';
-const SHEET_NAME = 'Pengeluaran';
+const SPREADSHEET_ID = 'https://script.google.com/macros/s/AKfycbyPTSVMIR1-SKlqR6xokaGL5McsbXuju6sbL4qUaBF7rj8_xGMca_6VwSXbs9ksldEuQw/exec';
+const SHEET_NAME = 'sheet-template.csv';
 
 const DEFAULT_HEADERS = [
   'Tanggal',
