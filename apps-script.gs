@@ -4,7 +4,7 @@
 // Ganti SPREADSHEET_ID dengan ID Google Sheets kamu
 // ======================================================
 
-const SPREADSHEET_ID = 'https://docs.google.com/spreadsheets/d/1kV-qSv6Qv5LTYzc66kojNKGaihq-C0rW5tKRvT6A_sc/';
+const SPREADSHEET_ID = 'GANTI_DENGAN_ID_GOOGLE_SHEETS_KAMU';
 const SHEET_NAME = 'Pengeluaran';
 
 function doGet(e) {
