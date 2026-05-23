@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Pengeluaran BOGO CAFE</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    :root{--bg:#f5f6fa;--card:#fff;--line:#e5e7eb;--text:#111827;--muted:#6b7280;--accent:#f97316;--red:#dc2626;--green:#16a34a;--shadow:0 10px 24px rgba(15,23,42,.06)}
+    *{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,system-ui,sans-serif}
+    body{background:var(--bg);color:var(--text);min-height:100vh}
+    .wrap{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+    aside{background:#fff;border-right:1px solid var(--line);position:sticky;top:0;height:100vh}
+    .brand{padding:22px 18px;background:linear-gradient(135deg,#f97316,#fb923c);color:white}
+    .brand h1{font-size:18px}.brand p{font-size:12px;opacity:.9;margin-top:3px}
+    nav{padding:14px 0}.navbtn{padding:12px 18px;cursor:pointer;color:var(--muted);font-size:14px;border-left:4px solid transparent}
+    .navbtn:hover,.navbtn.active{background:#fff7ed;color:var(--accent);border-left-color:var(--accent);font-weight:700}
+    main{padding:24px 28px}
+    .topbar{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-bottom:18px}
+    h2{font-size:22px}.sub{font-size:13px;color:var(--muted);margin-top:4px}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    input,select,button{border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:#fff;font-size:13px}
+    input:focus,select:focus{outline:none;border-color:var(--accent)}
+    button{cursor:pointer;font-weight:600}button:hover{border-color:var(--accent);color:var(--accent)}
+    button.primary{background:var(--accent);border-color:var(--accent);color:white}
+    button.green{background:var(--green);border-color:var(--green);color:white}
+    button.red{background:#fef2f2;border-color:#fecaca;color:var(--red)}
+    .api-box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow);margin-bottom:18px}
+    .api-row{display:flex;gap:8px;flex-wrap:wrap}.api-row input{min-width:360px;flex:1}
+    .hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+    .grid{display:grid;gap:14px}.kpis{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:14px}
+    .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+    .kpi-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}.kpi-value{font-size:22px;font-weight:800;margin-top:6px}
+    .charts{grid-template-columns:2fr 1fr;margin-bottom:14px}.section{display:none}.section.active{display:block}
+    table{width:100%;border-collapse:collapse}th{text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--line);padding:10px 8px}
+    td{border-bottom:1px solid var(--line);padding:10px 8px;font-size:13px;vertical-align:middle}tr:hover td{background:#fff7ed}
+    .right{text-align:right}.chip{display:inline-block;padding:4px 9px;border-radius:99px;background:#fff7ed;color:#ea580c;font-size:12px;font-weight:700}
+    .actions{display:flex;gap:5px;justify-content:flex-end}.empty{text-align:center;color:var(--muted);padding:35px}
+    .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;z-index:20}
+    .modal-bg.open{display:flex}.modal{background:white;border-radius:18px;width:520px;max-width:95vw;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.2)}
+    .form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.field{display:flex;flex-direction:column;gap:5px}.field.full{grid-column:1/-1}
+    label{font-size:12px;color:var(--muted);font-weight:700}.field input,.field select{width:100%}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+    .toast{position:fixed;right:22px;bottom:22px;background:#111;color:white;padding:12px 18px;border-radius:12px;font-size:13px;opacity:0;transform:translateY(10px);transition:.2s;z-index:50}
+    .toast.show{opacity:1;transform:translateY(0)}
+    @media(max-width:900px){.wrap{grid-template-columns:1fr}aside{display:none}.kpis,.charts{grid-template-columns:1fr}.api-row{display:grid}.api-row input{min-width:0}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <aside>
+    <div class="brand"><h1>☕ BOGO CAFE</h1><p>Dashboard Pengeluaran</p></div>
+    <nav>
+      <div class="navbtn active" id="nav-dashboard" onclick="showSection('dashboard')">📊 Dashboard</div>
+      <div class="navbtn" id="nav-data" onclick="showSection('data')">📋 Semua Data</div>
+      <div class="navbtn" onclick="openModal()">➕ Tambah Belanja</div>
+    </nav>
+  </aside>
+  <main>
+    <div class="topbar">
+      <div><h2 id="title">📊 Dashboard Pengeluaran</h2><p class="sub">Catatan belanja bahan BOGO CAFE yang bisa disimpan ke Google Sheets.</p></div>
+      <div class="controls">
+        <select id="filterBulan" onchange="renderAll()">
+          <option value="">Semua Bulan</option><option value="2026-01">Januari 2026</option><option value="2026-02">Februari 2026</option><option value="2026-03">Maret 2026</option><option value="2026-04">April 2026</option><option value="2026-05">Mei 2026</option><option value="2026-06">Juni 2026</option><option value="2026-07">Juli 2026</option><option value="2026-08">Agustus 2026</option><option value="2026-09">September 2026</option><option value="2026-10">Oktober 2026</option><option value="2026-11">November 2026</option><option value="2026-12">Desember 2026</option>
+        </select>
+        <select id="filterKat" onchange="renderAll()">
+          <option value="">Semua Kategori</option><option value="Protein">Protein</option><option value="Sayuran">Sayuran</option><option value="Bumbu">Bumbu</option><option value="Minyak">Minyak</option><option value="Kering">Bahan Kering</option><option value="Minuman">Minuman</option><option value="Lainnya">Lainnya</option>
+        </select>
+        <button class="primary" onclick="openModal()">+ Tambah</button>
+      </div>
+    </div>
+
+    <div class="api-box">
+      <div class="api-row">
+        <input id="apiUrl" placeholder="Tempel URL Apps Script yang berakhiran /exec">
+        <button onclick="saveApiUrl()">Simpan URL</button>
+        <button onclick="testApi()">Tes API</button>
+        <button onclick="loadFromSheet()">Ambil Data</button>
+        <button class="green" onclick="saveToSheet()">Simpan ke Sheets</button>
+      </div>
+      <div class="hint">Versi ini sudah memakai JSONP untuk menghindari error <b>Failed to fetch / CORS</b> dari GitHub Pages.</div>
+    </div>
+
+    <section class="section active" id="sec-dashboard">
+      <div class="grid kpis">
+        <div class="card"><div class="kpi-label">Total Pengeluaran</div><div class="kpi-value" id="kpiTotal">Rp 0</div></div>
+        <div class="card"><div class="kpi-label">Jumlah Transaksi</div><div class="kpi-value" id="kpiCount">0</div></div>
+        <div class="card"><div class="kpi-label">Rata-rata</div><div class="kpi-value" id="kpiAvg">Rp 0</div></div>
+        <div class="card"><div class="kpi-label">Bahan Terbesar</div><div class="kpi-value" id="kpiTop">-</div></div>
+      </div>
+      <div class="grid charts">
+        <div class="card"><h3 style="font-size:15px;margin-bottom:12px">Pengeluaran per Kategori</h3><canvas id="barChart" height="110"></canvas></div>
+        <div class="card"><h3 style="font-size:15px;margin-bottom:12px">Proporsi Kategori</h3><canvas id="donutChart" height="170"></canvas></div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:15px;margin-bottom:12px">Transaksi Terbaru</h3>
+        <table><thead><tr><th>Tanggal</th><th>Nama Bahan</th><th>Kategori</th><th>Qty</th><th class="right">Total</th></tr></thead><tbody id="recentRows"></tbody></table>
+      </div>
+    </section>
+
+    <section class="section" id="sec-data">
+      <div class="card">
+        <div class="topbar" style="margin-bottom:8px"><div><h3 style="font-size:16px">Semua Data Belanja</h3><p class="sub" id="dataInfo">0 data</p></div><input id="searchInput" placeholder="Cari nama/kategori..." oninput="renderTable()"></div>
+        <table><thead><tr><th>Tanggal</th><th>Nama Bahan</th><th>Kategori</th><th>Qty</th><th>Harga</th><th class="right">Total</th><th class="right">Aksi</th></tr></thead><tbody id="allRows"></tbody></table>
+        <div id="emptyData" class="empty" style="display:none">Belum ada data.</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="modal-bg" id="modalBg" onclick="if(event.target.id==='modalBg')closeModal()">
+  <div class="modal">
+    <h3 id="modalTitle">Tambah Belanja</h3>
+    <div class="form">
+      <div class="field"><label>Tanggal *</label><input type="date" id="fDate"></div>
+      <div class="field"><label>Kategori *</label><select id="fKat"><option value="">Pilih kategori</option><option value="Protein">Protein</option><option value="Sayuran">Sayuran</option><option value="Bumbu">Bumbu</option><option value="Minyak">Minyak</option><option value="Kering">Bahan Kering</option><option value="Minuman">Minuman</option><option value="Lainnya">Lainnya</option></select></div>
+      <div class="field full"><label>Nama Bahan *</label><input id="fNama" placeholder="Contoh: Ayam, Cabai, Minyak Goreng"></div>
+      <div class="field"><label>Jumlah *</label><input type="number" id="fQty" min="0" step="0.01" placeholder="5"></div>
+      <div class="field"><label>Satuan</label><select id="fSatuan"><option value="kg">kg</option><option value="gram">gram</option><option value="liter">liter</option><option value="ml">ml</option><option value="pcs">pcs</option><option value="ikat">ikat</option><option value="bungkus">bungkus</option><option value="botol">botol</option><option value="dus">dus</option></select></div>
+      <div class="field full"><label>Harga per Satuan *</label><input type="number" id="fHarga" min="0" placeholder="35000"></div>
+      <div class="field full"><label>Catatan</label><input id="fNote" placeholder="Opsional"></div>
+    </div>
+    <div class="modal-actions"><button onclick="closeModal()">Batal</button><button class="primary" onclick="saveItem()">Simpan</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const COLORS={Protein:'#ef4444',Sayuran:'#16a34a',Bumbu:'#f97316',Minyak:'#d97706',Kering:'#92400e',Minuman:'#2563eb',Lainnya:'#7c3aed'};
+let data=[],editId=null,activeSection='dashboard',API_URL=localStorage.getItem('bogo_api_url')||'',barChart=null,donutChart=null;
+
+function fmt(n){return 'Rp '+Math.round(Number(n)||0).toLocaleString('id-ID')}
+function totalItem(x){return (Number(x.qty)||0)*(Number(x.harga)||0)}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
+function today(){return new Date().toISOString().split('T')[0]}
+function safeDate(s){return s?new Date(s+'T00:00:00').toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}):'-'}
+function normalizeItem(item,index=0){return{id:item.id||Date.now()+index,date:item.date||item.tanggal||'',nama:item.nama||item.nama_bahan||item.bahan||'',kat:item.kat||item.kategori||'',qty:Number(item.qty||item.jumlah||0),satuan:item.satuan||'kg',harga:Number(item.harga||item.harga_satuan||0),note:item.note||item.catatan||''}}
+function saveLocal(){localStorage.setItem('bogo_data_backup',JSON.stringify(data))}
+function loadLocal(){try{data=JSON.parse(localStorage.getItem('bogo_data_backup')||'[]').map(normalizeItem)}catch(e){data=[]}}
+function filteredData(){const bulan=document.getElementById('filterBulan').value,kat=document.getElementById('filterKat').value;return data.filter(x=>(!bulan||x.date.startsWith(bulan))&&(!kat||x.kat===kat))}
+
+function jsonp(params){
+  if(!API_URL) return Promise.reject(new Error('URL Apps Script belum disimpan'));
+  return new Promise((resolve,reject)=>{
+    const cb='bogo_cb_'+Date.now()+'_'+Math.floor(Math.random()*9999);
+    const script=document.createElement('script');
+    const sep=API_URL.includes('?')?'&':'?';
+    const qs=new URLSearchParams({...params,callback:cb}).toString();
+    window[cb]=(res)=>{delete window[cb];script.remove();resolve(res)};
+    script.onerror=()=>{delete window[cb];script.remove();reject(new Error('Gagal konek. Cek URL Apps Script dan deploy Web App'))};
+    script.src=API_URL+sep+qs;
+    document.body.appendChild(script);
+    setTimeout(()=>{if(window[cb]){delete window[cb];script.remove();reject(new Error('Timeout. Apps Script tidak merespons'))}},15000);
+  });
+}
+
+function showSection(name){activeSection=name;document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('active'));document.getElementById('sec-'+name).classList.add('active');document.getElementById('nav-'+name).classList.add('active');document.getElementById('title').textContent=name==='dashboard'?'📊 Dashboard Pengeluaran':'📋 Semua Data Belanja';renderAll()}
+function renderAll(){renderDashboard();renderTable()}
+function renderDashboard(){
+  const rows=filteredData(),grand=rows.reduce((s,x)=>s+totalItem(x),0),avg=rows.length?grand/rows.length:0,byName={};
+  rows.forEach(x=>byName[x.nama]=(byName[x.nama]||0)+totalItem(x));const top=Object.entries(byName).sort((a,b)=>b[1]-a[1])[0];
+  kpiTotal.textContent=fmt(grand);kpiCount.textContent=rows.length;kpiAvg.textContent=fmt(avg);kpiTop.textContent=top?top[0]:'-';
+  renderCharts(rows);renderRecent(rows);
+}
+function renderCharts(rows){
+  const byKat={};rows.forEach(x=>byKat[x.kat]=(byKat[x.kat]||0)+totalItem(x));const labels=Object.keys(byKat),values=labels.map(k=>byKat[k]),colors=labels.map(k=>COLORS[k]||'#999');
+  if(barChart)barChart.destroy();barChart=new Chart(barChart=document.getElementById('barChart'),{type:'bar',data:{labels,datasets:[{data:values,backgroundColor:colors.map(c=>c+'33'),borderColor:colors,borderWidth:2,borderRadius:8}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt(c.raw)}}},scales:{y:{ticks:{callback:v=>'Rp '+Number(v).toLocaleString('id-ID')}}}}});
+  if(donutChart)donutChart.destroy();donutChart=new Chart(donutChart=document.getElementById('donutChart'),{type:'doughnut',data:{labels,datasets:[{data:values,backgroundColor:colors,borderWidth:0}]},options:{plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.label}: ${fmt(c.raw)}`}}}}});
+}
+function renderRecent(rows){recentRows.innerHTML=rows.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5).map(x=>`<tr><td>${safeDate(x.date)}</td><td><b>${x.nama}</b>${x.note?`<div class="sub">${x.note}</div>`:''}</td><td><span class="chip">${x.kat}</span></td><td>${x.qty} ${x.satuan}</td><td class="right"><b>${fmt(totalItem(x))}</b></td></tr>`).join('')}
+function renderTable(){
+  const q=(document.getElementById('searchInput')?.value||'').toLowerCase();let rows=filteredData().filter(x=>!q||x.nama.toLowerCase().includes(q)||x.kat.toLowerCase().includes(q));rows.sort((a,b)=>b.date.localeCompare(a.date));
+  dataInfo.textContent=rows.length+' data ditemukan';emptyData.style.display=rows.length?'none':'block';
+  allRows.innerHTML=rows.map(x=>`<tr><td>${safeDate(x.date)}</td><td><b>${x.nama}</b>${x.note?`<div class="sub">${x.note}</div>`:''}</td><td><span class="chip">${x.kat}</span></td><td>${x.qty} ${x.satuan}</td><td>${fmt(x.harga)}</td><td class="right"><b>${fmt(totalItem(x))}</b></td><td class="right"><span class="actions"><button onclick="openModal(${x.id})">Edit</button><button class="red" onclick="deleteItem(${x.id})">Hapus</button></span></td></tr>`).join('');
+}
+function openModal(id=null){editId=id;modalTitle.textContent=id?'Edit Belanja':'Tambah Belanja';const item=data.find(x=>String(x.id)===String(id));fDate.value=item?.date||today();fKat.value=item?.kat||'';fNama.value=item?.nama||'';fQty.value=item?.qty||'';fSatuan.value=item?.satuan||'kg';fHarga.value=item?.harga||'';fNote.value=item?.note||'';modalBg.classList.add('open')}
+function closeModal(){modalBg.classList.remove('open')}
+function saveItem(){
+  const item=normalizeItem({id:editId||Date.now(),date:fDate.value,kat:fKat.value,nama:fNama.value.trim(),qty:fQty.value,satuan:fSatuan.value,harga:fHarga.value,note:fNote.value.trim()});
+  if(!item.date||!item.kat||!item.nama||!item.qty||!item.harga){alert('Isi semua field wajib.');return}
+  if(editId){const i=data.findIndex(x=>String(x.id)===String(editId));if(i>=0)data[i]=item;toast('✅ Data berhasil diperbarui')}else{data.push(item);toast('✅ Belanja berhasil ditambahkan')}
+  closeModal();saveLocal();renderAll();saveToSheet(true);
+}
+function deleteItem(id){if(!confirm('Hapus data ini?'))return;data=data.filter(x=>String(x.id)!==String(id));saveLocal();renderAll();toast('🗑️ Data dihapus');saveToSheet(true)}
+function saveApiUrl(){API_URL=apiUrl.value.trim();if(!API_URL){alert('Tempel URL Apps Script dulu.');return}if(!API_URL.includes('/exec')){alert('URL harus berakhiran /exec');return}localStorage.setItem('bogo_api_url',API_URL);toast('✅ URL Apps Script tersimpan')}
+async function testApi(){try{if(!API_URL)saveApiUrl();const json=await jsonp({action:'ping'});if(json.ok)toast('✅ API online: '+json.message);else alert('API error: '+(json.error||'Tidak diketahui'))}catch(err){alert('Gagal tes API: '+err.message)}}
+async function loadFromSheet(){try{if(!API_URL)saveApiUrl();const json=await jsonp({action:'read'});if(!json.ok){alert('Gagal ambil data: '+(json.error||'Tidak diketahui'));return}data=(json.data||[]).map(normalizeItem).filter(x=>x.date&&x.nama);saveLocal();renderAll();toast('✅ Data berhasil diambil dari Google Sheets')}catch(err){alert('Gagal ambil data: '+err.message)}}
+async function saveToSheet(silent=false){
+  if(!API_URL){if(!silent)alert('Tempel dan simpan URL Apps Script dulu.');return}
+  saveLocal();
+  try{
+    await fetch(API_URL,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'save',data})});
+    if(!silent)toast('✅ Data dikirim ke Google Sheets. Klik Ambil Data untuk cek.');
+  }catch(err){if(!silent)alert('Gagal kirim ke Google Sheets: '+err.message)}
+}
+document.addEventListener('DOMContentLoaded',()=>{apiUrl.value=API_URL;loadLocal();renderAll()});
+</script>
+</body>
+</html>
